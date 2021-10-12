@@ -1,0 +1,50 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml" style="min-width:1200px;">
+
+<head>
+  <title>Tracks Vigilante</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+  <h1 id="h1">Tracks Vigilante</h1>
+  <div class="control-container" style="display: flex;">
+    <div id="select-container">
+
+    </div>
+    <button id="clear" class="clear-button">Clear table</button>
+  </div>
+  <input id="filter" type="text" placeholder="Filter property" />
+  <input type="checkbox" id="extended" name="extended" value="true">
+  <label for="extended"> Extended properties</label><br>
+
+  <fieldset>
+    <div class="inline">
+      <input type="radio" class="radio" id="all" name="type" value="ALL" checked>
+      <label class="radio" for="all">ALL</label>
+      <input type="radio" class="radio"  id="tracks" name="type" value="tracks-event">
+      <label class="radio" for="tracks">Tracks</label>
+      <input type="radio" class="radio"  id="graphana" name="type" value="graphana">
+      <label class="radio" for="graphana">Graphana</label>
+      <input type="radio" class="radio"  id="external" name="type" value="external">
+      <label class="radio" for="external">External</label>
+    </div>
+  </fieldset>
+
+
+  <div>
+    <table id="table">
+      <tr>
+        <th>Key</th>
+        <th>Properties</th>
+      </tr>
+      <tbody id="data">
+      </tbody>
+    </table>
+  </div>
+  <button style="display: none" id="reload">Reload</button>
+  <p class="credits"> Made with love for Automattic by <a class="credit-link" href="https://matticspace.a8c.com/prismiwi2015/" target="_blank">Daniel</a></p>
+</body>
+<script src="popup.js"></script>
+
+</html>

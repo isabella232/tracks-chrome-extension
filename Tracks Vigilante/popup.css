@@ -1,0 +1,119 @@
+td {
+    vertical-align: top;
+    column-width: length;
+    max-width: 290px;
+    word-wrap: break-word;
+}
+
+th{
+    background-color: black;
+    color: white;
+}
+
+
+tr:nth-child(even) {
+    background-color: gainsboro;
+}
+
+tr:nth-child(odd) {
+    background-color: white;
+}
+
+th, td{
+    padding: 4px;
+}
+
+table {
+    margin-top: 16px;
+    margin-right: 14px;
+    table-layout: auto;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.credits{
+    text-align: left;
+    color: white;
+}
+
+.credit-link:visited, credit-link:hover, credit-link:active{
+    text-align: left;
+    color: wheat;
+}
+
+td {
+    border: 1px solid black; 
+}
+
+.no-margin {
+    margin-top: 0;
+    margin-bottom: 2px;
+    margin-left:6px;
+    margin-right:6px;
+}
+
+.standalone-button, .clear-button {
+    margin-left: 10px;
+    height: 19px;
+}
+
+.grafana {
+    color: red;
+}
+
+.external {
+    color: darkorange;
+}
+
+a, a:visited, a:hover, a:active {
+    color: blue;
+}
+
+html {
+    background: url('uatu.jpg') no-repeat center center fixed; 
+    background-color: black;
+    padding-left: 8px;
+    padding-right: 8px;
+    margin-left: 8px;
+    margin-right: 8px;
+    background-size: cover;
+    height: 100%;
+    width: 100%;
+}
+
+h1 {
+    color: whitesmoke;
+    margin-top: 32px;
+    margin-bottom: 32px;
+}
+
+label {
+    color: whitesmoke;
+}
+
+.control-container {
+    margin-bottom: 16px;
+}
+
+fieldset {
+    border-width: 0px;
+    margin-top: 16px;
+}
+
+label.radio {
+    float: left;
+    clear: none;
+    display: block;
+    padding: 0px 1em 0px 8px;
+}
+
+input[type=radio], input.radio {
+    margin-top: 8px;
+    float: left;
+    clear: none;
+    margin: 2px 0 0 2px;
+}
+
+.store-admin {
+    color:blue;
+}
