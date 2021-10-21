@@ -11,7 +11,7 @@
      */
     chrome.runtime.onMessage.addListener(
         function (request) {
-            if (request.msg === "Tracks") {
+            if (request.msg === "Tracks" || request.msg === "Render" ) {
                 reload();
             }
         }
@@ -27,7 +27,20 @@
     const filter = document.getElementById("filter");
     const stats = document.getElementById("data");
     const extended = document.getElementById("extended");
+    const all_tabs = document.getElementById("all_tabs");
     const select = document.getElementById("select-container");
+    let active_tab_id = null;
+
+    /**
+     * Properties and config init
+     */
+     chrome.tabs.onActivated.addListener( (activeInfo) => {
+        active_tab_id = activeInfo.tabId;
+      });
+    
+      chrome.tabs.query({active: true}, ( tabs ) => {
+        active_tab_id = tabs[0].id;
+      })
 
     /**
      * Event Listeners declaration
@@ -36,6 +49,7 @@
     standaloneButton?.addEventListener("click", openStandalone);
     reloadButton.addEventListener("click", reload);
     extended.addEventListener("click", reload);
+    all_tabs.addEventListener("click", reload )
     filter.addEventListener("input", reload);
     document.querySelectorAll('input[name="type"]').forEach((elem) => {
         elem.addEventListener("change", function () {
@@ -57,7 +71,8 @@
      * It also sets the badge in the Chrome Extension Icon to 0.
      */
     function clearContents() {
-        chrome.action.setBadgeText({ text: "" });
+        chrome.storage.local.get( 'vigilante_status', ( paused ) => { chrome.action.setBadgeText({ text: !!paused ? "OFF" : "0" }); } );
+        
         chrome.storage.local.set({ url_array: [] }, () => stats.innerHTML = null);
         reload();
     }
@@ -94,6 +109,14 @@
         if (standaloneButton != null) {
             document.body.style.minWidth = extended.checked ? "1200px" : "800px";
         }
+        //Hack to add img click handlers
+        setTimeout(() => 
+        {
+            var imgs = document.getElementsByTagName("img");
+            for (let i = 0; i < imgs.length; i++ ) {
+                imgs[i].addEventListener( "click", openImage );
+            }
+        }, 0)
     }
 
     /**
@@ -121,6 +144,10 @@
         params = params.reverse();
         params.forEach(element => {
             let customKey = element.key;
+            let tab =  element.tabId;
+            if ( !all_tabs.checked && tab != active_tab_id ) {
+                return;
+            }
             let parameters = [];
             let extendedParameters = [];
             if (element.key == selectorValue || selectorValue == '' || selectorValue == "ALL") {
@@ -133,7 +160,7 @@
                     }
                 }
                 if (parameters.length > 0 || extendedParameters.length > 0) {
-                    html += generateRow(customKey, parameters, extendedParameters, element.time, element.type);
+                    html += generateRow(customKey, parameters, extendedParameters, element.time, element.type, element.screenshot);
                 }
             }
         });
@@ -141,7 +168,7 @@
             <tr>
                 <th>Key</th>
                 <th>Properties</th>
-                ${extended.checked ? `<th class="extended">Extended properties</th>` : ''}
+                ${extended.checked ? `<th class="extended">Extended properties</th><th class="extended">Screenshot</th>` : ''}
             </tr>${html}`;
     }
 
@@ -181,9 +208,10 @@
      * @param { { key, value }[] } extendedProperties Third column
      * @param { string } time Time displayed under first column data
      * @param { string } eventType Used to render row in one way or another
+     * @param { string } image screenshot of where the event happened
      * @returns { string } HTML string representing a row
      */
-    function generateRow( key, properties, extendedProperties, time, eventType ) {
+    function generateRow( key, properties, extendedProperties, time, eventType, image ) {
         return `
             <tr class="row">
                 <td class="key ${eventType}">
@@ -195,6 +223,9 @@
                 ${extended.checked ?
                         `<td class="extended">
                         ${generateProperties(extendedProperties)}
+                    </td>
+                    <td>
+                    <img src="${ image }" class="freewidth" alt="screenshot"/>
                     </td>` : ''
                     }
                 
@@ -273,6 +304,17 @@
         selector?.addEventListener("change", filterSelector);
         selector = document.getElementById("keys");
     }
+
+    /**
+     * Opens image in new tab for better viz.
+     */
+    function openImage( event ) {
+        var largeImage = event.target;
+        let src = largeImage.getAttribute('src');
+        let w = popupWindow("", 'Image', largeImage.naturalWidth, largeImage.naturalHeight);
+        w.document.write(largeImage.outerHTML);
+        w.document.body.style.margin = 0;
+     }
 
     /**
      * Helper function to open a popup window

@@ -1,14 +1,16 @@
 {
     "name": "Tracks Vigilante",
     "manifest_version": 3,
-    "version": "1.1",
+    "version": "1.2",
     "description": "Tracks network calls to Tracks",
     "permissions": [
       "activeTab",
       "scripting",
       "background", 
       "webRequest",
-      "storage"
+      "storage",
+      "contextMenus",
+      "tabs"
     ],
     "icons": { 
       "16": "/icons/tv16.png",
@@ -30,5 +32,11 @@
       "http://pixel.wp.com/",
       "https://pixel.wp.com/",
       "*://*/*"
+    ],
+    "content_scripts": [
+      {
+        "matches": ["*://*/*"],
+        "js": ["vigilante.js"]
+      }
     ]
   }

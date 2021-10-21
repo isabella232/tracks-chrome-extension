@@ -1,8 +1,24 @@
 (function () {
   'use strict';
+  let pause_status = null;
+  let active_tab_id = null;
+  let last_screenshot = null;
+  let last_image = null;
+
+  chrome.tabs.onActivated.addListener( (activeInfo) => {
+    active_tab_id = activeInfo.tabId;
+    sendMessageToVigilante( active_tab_id, "Render");
+  });
+
+  chrome.tabs.query({active: true}, ( tabs ) => {
+    active_tab_id = tabs[0].id;
+  })
 
   chrome.webRequest.onCompleted.addListener(onCompletedListener,
     { urls: ["*://pixel.wp.com/*",] }, ['responseHeaders']);
+
+    chrome.webRequest.onBeforeRequest.addListener((details) => console.log(details),
+    { urls: ["*://pixel.wp.com/*",] }, []);
 
 
   function hasBeenReplaced( url ) {
@@ -14,6 +30,9 @@
    * @param { Event } details for the completed request.
    */
   function onCompletedListener( details ) {
+    if ( pause_status ) {
+      return;
+    }
     let url = details.url.replace( "https://pixel.wp.com/t.gif?", "" ).replace( "http://pixel.wp.com/t.gif?", "" );
     let type = '';
 
@@ -46,9 +65,9 @@
    * 
    * @param { { key, value, type, time }[] } params Data to send
    */
-  function sendMessageToVigilante( params ) {
+  function sendMessageToVigilante( params, message = "Tracks" ) {
     chrome.runtime.sendMessage({
-      msg: "Tracks",
+      msg: message,
       data: {
         queryParams: params
       }
@@ -62,15 +81,27 @@
    * @param string type (tracks-event, external, grafana)
    */
   function storeData( result, params, type ) {
-    let currentDate = new Date();
-    let stringDate = currentDate.toLocaleTimeString();
-    if (!result?.url_array) {
-      result.url_array = [{ key: params._en, values: params, time: stringDate, type: type }];
-    } else {
-      result.url_array.push({ key: params._en, values: params, time: stringDate, type: type })
+    let callbackStoreData = ( image = last_image ) => {
+      let currentDate = new Date();
+      let stringDate = currentDate.toLocaleTimeString();
+      if (!result?.url_array) {
+        result.url_array = [{ key: params._en, values: params, time: stringDate, type: type, tabId: active_tab_id, screenshot: image }];
+      } else {
+        result.url_array.push({ key: params._en, values: params, time: stringDate, type: type, tabId: active_tab_id, screenshot: image })
+      }
+      chrome.storage.local.set({ url_array: result.url_array }, () => sendMessageToVigilante(params));
+      updateBadge(result.url_array);
     }
-    chrome.storage.local.set({ url_array: result.url_array }, () => sendMessageToVigilante(params));
-    updateBadge(result.url_array);
+    let timestamp = + new Date();
+    if ( ! last_screenshot || ( ( timestamp - last_screenshot > 200 ) ) ) {
+      last_screenshot = timestamp;
+      chrome.tabs.captureVisibleTab(null,{ quality: 85 },function( dataUri ) {
+        callbackStoreData( dataUri );
+      });
+    } else {
+      callbackStoreData();
+    }
+    
   }
 
   /**
@@ -122,4 +153,43 @@
       keepAlive();
     }
   }
+
+  function getword( event, paused ) {
+    if (event.menuItemId !== "pause-resume") {
+      return;
+    }
+    paused = !paused;
+    pause_status = paused;
+    chrome.storage.local.set({ vigilante_status: paused }, () => updateContextMenu( paused ));
+  }
+
+  chrome.storage.local.get( 'vigilante_status', ( result ) => { pause_status = result; createContextMenu( result ); } );
+
+  function createContextMenu( paused ) {
+    chrome.storage.local.get( 'url_array', ( result ) => {
+      chrome.action.setBadgeText({ text: !!paused ? "OFF" : result.url_array.length.toString() });
+      chrome.contextMenus.create(
+      {
+        title: !!paused ? "Start watching ٩(๏_๏)۶" : "Stop watching (っ▀¯▀)つ", 
+        contexts:["all"], 
+        id: "pause-resume",
+        type: "normal"
+      });
+      chrome.contextMenus.onClicked.addListener( ( event )  => getword ( event, paused ));
+    } );
+  }
+
+  function updateContextMenu( paused ) {
+    chrome.storage.local.get( 'url_array', ( result ) => {
+      chrome.action.setBadgeText({ text: !!paused ? "OFF" : result.url_array.length.toString() });
+      chrome.contextMenus.update("pause-resume", {
+        title: !!paused ? "Start watching ٩(๏_๏)۶" : "Stop watching (っ▀¯▀)つ", 
+        contexts:["all"], 
+        type: "normal"
+      });
+      chrome.contextMenus.onClicked.addListener( ( event )  => getword ( event, paused ));
+    } );
+  }
+
+
 })();
