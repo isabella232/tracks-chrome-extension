@@ -12,6 +12,8 @@ It's a simple plugin, written in pure JavaScript and HTML, not making use of any
 
 By clicking on the icon we can see already our requests to https://pixel.wp.com/, filter by any event type (for Tracks events), and additionally, we have a filter where we can add a string to filter by any property or value (not only for Tracks events).
 
+Using right click on the Vigilante Icon gives you the possibility to Clear Data collected and Pause/Resume the watcher.
+
 # Which kind of events can we sniff?
 
 So far I've found that we send information relative to "Calypso" (blue), "External stats" (orange) and "Grafana" (red).
