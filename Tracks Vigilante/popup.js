@@ -83,7 +83,7 @@
 
   /**
      * Main render function
-     * @param { { key, value, type, time }[] } result Object containing events caught to fill Table contents
+     * @param { { key, value, type, time, screenshot }[] } result Object containing events caught to fill Table contents
      */
   function renderTable ( result ) {
     fillTableData( result?.urlArray );
@@ -131,7 +131,7 @@
           }
         }
         if ( parameters.length > 0 || extendedParameters.length > 0 ) {
-          html += generateRow( customKey, parameters, extendedParameters, element.time, element.type );
+          html += generateRow( customKey, parameters, extendedParameters, element.time, element.type, element.screenshot );
         }
       }
     } );
@@ -139,7 +139,7 @@
             <tr>
                 <th>Key</th>
                 <th>Properties</th>
-                ${ extended.checked ? '<th class="extended">Extended properties</th>' : '' }
+                ${ extended.checked ? '<th class="extended">Extended properties</th><th class="extended">Screenshot</th>' : '' }
             </tr>${ html }`;
   }
 
@@ -181,7 +181,7 @@
      * @param { string } eventType Used to render row in one way or another
      * @returns { string } HTML string representing a row
      */
-  function generateRow ( key, properties, extendedProperties, time, eventType ) {
+  function generateRow ( key, properties, extendedProperties, time, eventType, screenshot ) {
     return `
             <tr class="row">
                 <td class="key ${ eventType }">
@@ -193,7 +193,10 @@
                 ${ extended.checked
                         ? `<td class="extended">
                         ${ generateProperties( extendedProperties ) }
-                    </td>`
+                    </td>
+                <td>
+                    ${ screenshot ? generateScreeshot( screenshot ) : '' }
+                </td>`
 : ''
                     }
                 
@@ -230,6 +233,10 @@
       html += generateProperty( element );
     } );
     return html;
+  }
+
+  function generateScreeshot ( screenshot ) {
+    return `<img src="${ screenshot }"/>`;
   }
 
   /**
