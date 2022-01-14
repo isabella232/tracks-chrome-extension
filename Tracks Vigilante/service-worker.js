@@ -1,5 +1,5 @@
-(function () {
-  'use strict';
+( function () {
+  'use strict'
 
   /**
    * The event data
@@ -13,184 +13,184 @@
   /**
    * The storage data
    * @typedef {Object} TrackStorage
-   * @property {TrackEvent[]} url_array - The triggered events
+   * @property {TrackEvent[]} urlArray - The triggered events
    */
 
   /** @type {TrackStorage} */
   const storage = {
-    url_array: [],
-  };
+    urlArray: [],
+  }
 
   // See: https://developer.chrome.com/docs/extensions/reference/storage/#asynchronous-preload-from-storage
-  chrome.action.onClicked.addListener(async () => {
+  chrome.action.onClicked.addListener( async () => {
     try {
-      await initStorage();
+      await initStorage()
     } catch ( error ) {
       // Ignore the error
     }
-  })
+  } )
 
-  chrome.webRequest.onCompleted.addListener(onCompletedListener,
-    { urls: ["*://pixel.wp.com/*",] }, ['responseHeaders']);
+  chrome.webRequest.onCompleted.addListener( onCompletedListener,
+    { urls: [ '*://pixel.wp.com/*' ] }, [ 'responseHeaders' ] )
 
   chrome.runtime.onMessage.addListener(
-    function (request) {
-      if ( request.msg === "Clear" ) {
-        clearData();
+    function ( request ) {
+      if ( request.msg === 'Clear' ) {
+        clearData()
       }
     }
   )
 
-  function hasBeenReplaced( url ) {
-    return url.includes( "https://pixel.wp.com" ) || url.includes( "http://pixel.wp.com" );
+  function hasBeenReplaced ( url ) {
+    return url.includes( 'https://pixel.wp.com' ) || url.includes( 'http://pixel.wp.com' )
   }
 
   /**
-   * 
+   *
    * @param { Event } details for the completed request.
    */
-  function onCompletedListener( details ) {
-    let url = details.url.replace( "https://pixel.wp.com/t.gif?", "" ).replace( "http://pixel.wp.com/t.gif?", "" );
-    let type = '';
+  function onCompletedListener ( details ) {
+    let url = details.url.replace( 'https://pixel.wp.com/t.gif?', '' ).replace( 'http://pixel.wp.com/t.gif?', '' )
+    let type = ''
 
-    //TODO A bit ugly filter, to be improved for better readability
+    // TODO A bit ugly filter, to be improved for better readability
     if ( hasBeenReplaced( url ) ) {
-      url = details.url.replace( "https://pixel.wp.com/g.gif?", "" ).replace( "http://pixel.wp.com/g.gif?", "" );
+      url = details.url.replace( 'https://pixel.wp.com/g.gif?', '' ).replace( 'http://pixel.wp.com/g.gif?', '' )
       if ( hasBeenReplaced( url ) ) {
-        url = details.url.replace( "https://pixel.wp.com/boom.gif?", "" ).replace( "http://pixel.wp.com/boom.gif?", "" );
-        if ( hasBeenReplaced( url )) {
-          console.log(`Unknown pixel ${url}`)
-          return;
+        url = details.url.replace( 'https://pixel.wp.com/boom.gif?', '' ).replace( 'http://pixel.wp.com/boom.gif?', '' )
+        if ( hasBeenReplaced( url ) ) {
+          console.log( `Unknown pixel ${ url }` )
+          return
         } else {
-          type = "grafana";
+          type = 'grafana'
         }
       } else {
-        type = "external";
+        type = 'external'
       }
     } else {
-      type = "tracks-event";
+      type = 'tracks-event'
     }
-    const urlSearchParams = new URLSearchParams( url );
-    const params = Object.fromEntries(urlSearchParams.entries());
+    const urlSearchParams = new URLSearchParams( url )
+    const params = Object.fromEntries( urlSearchParams.entries() )
 
-    storeData( params, type );
+    storeData( params, type )
   }
 
   /**
    * Sends the received data to the popup html (standalone or not)
-   * 
+   *
    * @param { { key, value, type, time }[] } params Data to send
    */
-  function sendMessageToVigilante( params ) {
-    chrome.runtime.sendMessage({
-      msg: "Tracks",
+  function sendMessageToVigilante ( params ) {
+    chrome.runtime.sendMessage( {
+      msg: 'Tracks',
       data: {
-        queryParams: params
-      }
-    });
+        queryParams: params,
+      },
+    } )
   }
 
   /**
-   * 
+   *
    * @param { { key, value, type, time }[] } params New data storage
    * @param string type (tracks-event, external, grafana)
    */
-  async function storeData( params, type ) {
-    let currentDate = new Date();
-    let stringDate = currentDate.toLocaleTimeString();
-    const url_array = storage?.url_array?.slice() || [];
+  async function storeData ( params, type ) {
+    const currentDate = new Date()
+    const stringDate = currentDate.toLocaleTimeString()
+    const urlArray = storage?.urlArray?.slice() || []
 
-    url_array.push({ key: params._en, values: params, time: stringDate, type: type })
+    urlArray.push( { key: params._en, values: params, time: stringDate, type: type } )
 
-    await updateStorage( { url_array } );
-    updateBadge( url_array );
-    sendMessageToVigilante( params );
+    await updateStorage( { urlArray } )
+    updateBadge( urlArray )
+    sendMessageToVigilante( params )
   }
 
   /**
    * Clear the data
    */
-  async function clearData() {
-    await updateStorage( { url_array: [] });
-    updateBadge( [] );
+  async function clearData () {
+    await updateStorage( { urlArray: [] } )
+    updateBadge( [] )
     sendMessageToVigilante( [] )
   }
 
   /**
    * Prints the small number in the Tracks Vigilante icon
-   * 
-   * @param { TrackEvent[] } trackEvents our data array
+   *
+   * @param {TrackEvent[]} trackEvents our data array
    */
-  function updateBadge( trackEvents ) {
-    chrome.action.setBadgeText({ text: trackEvents.length > 0 ? trackEvents.length.toString() : "" });
+  function updateBadge ( trackEvents ) {
+    chrome.action.setBadgeText( { text: trackEvents.length > 0 ? trackEvents.length.toString() : '' } )
   }
 
   /**
    * Initialize the storage
    */
-  async function initStorage() {
-    return new Promise((resolve, reject) => {
-      chrome.storage.local.get( 'url_array', ( result ) => {
-        const error = chrome.runtime.lastError;
+  async function initStorage () {
+    return new Promise( ( resolve, reject ) => {
+      chrome.storage.local.get( 'urlArray', ( result ) => {
+        const error = chrome.runtime.lastError
         if ( error ) {
-          return reject( error );
+          return reject( error )
         }
 
-        Object.assign(storage, result);
-        resolve();
-      });
-    });
+        Object.assign( storage, result )
+        resolve()
+      } )
+    } )
   }
 
   /**
    * Update the data
    * @param {TrackStorage} nextStorage The next data storage
    */
-  async function updateStorage( nextStorage ) {
-    return new Promise((resolve) => {
-      Object.assign(storage, nextStorage);
-      chrome.storage.local.set( nextStorage, () => resolve() );
-    })
+  async function updateStorage ( nextStorage ) {
+    return new Promise( ( resolve ) => {
+      Object.assign( storage, nextStorage )
+      chrome.storage.local.set( nextStorage, () => resolve() )
+    } )
   }
 
-  //Following code is to "revive" plugin if it has dead because of inactivity
-  let lifeline;
+  // Following code is to "revive" plugin if it has dead because of inactivity
+  let lifeline
 
-  keepAlive();
+  keepAlive()
 
-  chrome.runtime.onConnect.addListener(port => {
-    if (port.name === 'keepAlive') {
-      lifeline = port;
-      setTimeout(keepAliveForced, 295e3); // 5 minutes minus 5 seconds
-      port.onDisconnect.addListener(keepAliveForced);
+  chrome.runtime.onConnect.addListener( port => {
+    if ( port.name === 'keepAlive' ) {
+      lifeline = port
+      setTimeout( keepAliveForced, 295e3 ) // 5 minutes minus 5 seconds
+      port.onDisconnect.addListener( keepAliveForced )
     }
-  });
+  } )
 
-  function keepAliveForced() {
-    lifeline?.disconnect();
-    lifeline = null;
-    keepAlive();
+  function keepAliveForced () {
+    lifeline?.disconnect()
+    lifeline = null
+    keepAlive()
   }
 
-  async function keepAlive() {
-    if (lifeline) return;
-    for (const tab of await chrome.tabs.query({ url: '*://*/*' })) {
+  async function keepAlive () {
+    if ( lifeline ) return
+    for ( const tab of await chrome.tabs.query( { url: '*://*/*' } ) ) {
       try {
-        await chrome.scripting.executeScript({
+        await chrome.scripting.executeScript( {
           target: { tabId: tab.id },
-          function: () => chrome.runtime.connect({ name: 'keepAlive' }),
+          function: () => chrome.runtime.connect( { name: 'keepAlive' } ),
           // `function` will become `func` in Chrome 93+
-        });
-        chrome.tabs.onUpdated.removeListener(retryOnTabUpdate);
-        return;
-      } catch (e) { }
+        } )
+        chrome.tabs.onUpdated.removeListener( retryOnTabUpdate )
+        return
+      } catch ( e ) { }
     }
-    chrome.tabs.onUpdated.addListener(retryOnTabUpdate);
+    chrome.tabs.onUpdated.addListener( retryOnTabUpdate )
   }
 
-  async function retryOnTabUpdate(tabId, info, tab) {
-    if (info.url && /^(file|https?):/.test(info.url)) {
-      keepAlive();
+  async function retryOnTabUpdate ( tabId, info, tab ) {
+    if ( info.url && ( /^(file|https?):/.test( info.url ) ) ) {
+      keepAlive()
     }
   }
-})();
+} )()
