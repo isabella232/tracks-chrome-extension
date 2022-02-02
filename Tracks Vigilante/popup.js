@@ -46,7 +46,7 @@
      * Elements init values
      */
   let filterProperty = '';
-  let selectorValue = 'ALL';
+  const selectorValues = [ 'ALL' ];
   if ( standaloneButton == null ) {
     extended.checked = true;
   }
@@ -65,7 +65,9 @@
      * @param {Event} event
      */
   function filterSelector ( event ) {
-    selectorValue = event?.target?.value?.trim();
+    selectorValues.length = 0;
+    selectorValues.push( ... [...event?.target?.options].filter(option => option.selected).map(option => option.value) );
+    console.log( selectorValues );
     reload();
   }
 
@@ -75,7 +77,7 @@
      */
   function createKeySelector ( data ) {
     return `
-        <select name="keys" id="keys">
+        <select name="keys" id="keys" multiple >
             <option value="ALL">ALL</option>
             ${ getFilters( data ) }
         </select>`;
@@ -121,7 +123,7 @@
       let customKey = element.key;
       const parameters = [];
       const extendedParameters = [];
-      if ( element.key === selectorValue || selectorValue === '' || selectorValue === 'ALL' ) {
+      if ( selectorValues.some( item => [ element.key, 'ALL', '' ].includes( item ) ) ) {
         for ( const [ key, value ] of Object.entries( element.values ) ) {
           if ( typeSelected === 'ALL' || typeSelected === element.type ) {
             if ( filterProperty === '' || filterProperty == null || key.toLowerCase().includes( filterProperty.toLowerCase() ) ||
@@ -258,7 +260,7 @@
       if ( !element ) {
         return;
       }
-      html += `<option value="${ element }" ${ element === selectorValue ? 'selected' : '' }>${ element }</option>`;
+      html += `<option value="${ element }" ${  selectorValues.includes( element ) ? 'selected' : '' }>${ element }</option>`;
     } );
     return html;
   }

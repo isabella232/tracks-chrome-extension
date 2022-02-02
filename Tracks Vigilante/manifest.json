@@ -1,7 +1,7 @@
 {
     "name": "Tracks Vigilante",
     "manifest_version": 3,
-    "version": "1.3",
+    "version": "1.4",
     "description": "Tracks network calls to Tracks",
     "permissions": [
       "activeTab",
