@@ -67,7 +67,6 @@
   function filterSelector ( event ) {
     selectorValues.length = 0;
     selectorValues.push( ... [...event?.target?.options].filter(option => option.selected).map(option => option.value) );
-    console.log( selectorValues );
     reload();
   }
 
